@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poste d'observation — Littoral Varois</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0a2530;
+    --navy-mid:#0f3a49;
+    --navy-line:#1c5468;
+    --sand:#ece2ca;
+    --paper:#f5efe1;
+    --teal:#4fb3ac;
+    --coral:#e8703a;
+    --ink:#0a1c22;
+    --mist:rgba(245,239,225,0.62);
+    --mist-faint:rgba(245,239,225,0.32);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-mid) 100%);
+    color:var(--paper);
+    overflow:hidden;
+    padding:48px 6vw 0 6vw;
+  }
+  .hero-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--mist);
+  }
+  .brand strong{color:var(--sand);}
+  h1{
+    font-size:clamp(28px, 4.4vw, 52px);
+    line-height:1.05;
+    margin:14px 0 6px 0;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--mist);
+    font-size:15px;
+    max-width:520px;
+    margin:0 0 28px 0;
+  }
+  .coord{
+    text-align:right;
+    font-size:12px;
+    color:var(--mist);
+    line-height:1.7;
+  }
+  .coord .mono{color:var(--sand);}
+
+  .live-readout{
+    display:flex;
+    align-items:flex-end;
+    gap:28px;
+    flex-wrap:wrap;
+    padding-bottom:28px;
+    position:relative;
+    z-index:2;
+  }
+  .live-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--sand);
+    margin-bottom:10px;
+  }
+  .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--coral);
+    box-shadow:0 0 0 0 rgba(232,112,58,0.6);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(232,112,58,0.55);}
+    70%{box-shadow:0 0 0 10px rgba(232,112,58,0);}
+    100%{box-shadow:0 0 0 0 rgba(232,112,58,0);}
+  }
+  .big-number{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:clamp(64px, 11vw, 128px);
+    line-height:0.9;
+    color:var(--sand);
+    letter-spacing:-0.02em;
+  }
+  .big-number sup{
+    font-size:0.32em;
+    top:-0.5em;
+    color:var(--teal);
+  }
+  .big-label{
+    font-size:13px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--mist);
+    max-width:220px;
+    padding-bottom:10px;
+  }
+  .verdict{
+    font-size:14px;
+    color:var(--sand);
+    background:rgba(79,179,172,0.14);
+    border:1px solid rgba(79,179,172,0.4);
+    padding:9px 14px;
+    border-radius:3px;
+    max-width:260px;
+  }
+
+  /* ---------- CHARTS (hero) ---------- */
+  .charts-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    padding-bottom:30px;
+    position:relative;
+    z-index:2;
+  }
+  .chart-panel{
+    background:rgba(245,239,225,0.05);
+    border:1px solid rgba(245,239,225,0.14);
+    border-radius:4px;
+    padding:16px 18px 12px 18px;
+  }
+  .chart-panel .chart-title{
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin-bottom:2px;
+  }
+  .chart-panel .chart-sub{
+    font-size:11px;
+    color:var(--mist-faint);
+    margin-bottom:8px;
+  }
+  .chart-panel svg{width:100%; height:auto; display:block;}
+  .chart-panel .chart-loading{
+    font-size:12px;
+    color:var(--mist-faint);
+    padding:30px 0;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .chart-minmax{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:var(--mist-faint);
+    font-family:'JetBrains Mono', monospace;
+    margin-top:2px;
+  }
+
+  .trace-wrap{height:70px;position:relative;z-index:1;}
+  svg.trace{width:100%;height:100%;display:block;}
+  .trace path{
+    fill:none;
+    stroke:var(--navy-line);
+    stroke-width:1.4;
+  }
+  .trace path.active{
+    stroke:var(--teal);
+    stroke-width:1.8;
+    stroke-dasharray:6 5;
+    animation:sweep 5s linear infinite;
+  }
+  @keyframes sweep{ to{ stroke-dashoffset:-220; } }
+
+  @media (max-width:720px){
+    .charts-row{grid-template-columns:1fr;}
+  }
+
+  /* ---------- GRID / LOCATION BLOCKS ---------- */
+  .grid-wrap{padding:44px 6vw 20px 6vw;}
+  .grid-heading{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
+    border-bottom:1px solid rgba(10,28,34,0.14);
+    padding-bottom:10px;
+  }
+  .grid-heading h2{
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin:0;
+    color:var(--navy-mid);
+  }
+  #updated-at{
+    font-size:12px;
+    color:#6b6252;
+  }
+  .refresh-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--navy-deep);
+    color:var(--sand);
+    border:none;
+    padding:7px 12px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .refresh-btn:hover{background:var(--navy-mid);}
+  .refresh-btn:disabled{opacity:0.5;cursor:default;}
+
+  .loc-block{margin-bottom:34px;}
+  .loc-heading{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .loc-heading h3{
+    font-size:16px;
+    margin:0;
+    font-weight:700;
+    color:var(--navy-deep);
+  }
+  .loc-heading .loc-sub{
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#8a8069;
+  }
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--navy-deep);
+    color:var(--paper);
+    border-radius:4px;
+    padding:18px;
+    position:relative;
+    min-height:130px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .card .metric-label{
+    font-size:12px;
+    color:var(--mist);
+  }
+  .card .value{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:32px;
+    margin:6px 0 0 0;
+  }
+  .card .value .unit{
+    font-size:14px;
+    color:var(--teal);
+    margin-left:2px;
+  }
+  .card .foot{
+    font-size:11px;
+    color:var(--mist-faint);
+    margin-top:14px;
+  }
+  .card.state-error .value{color:var(--coral); font-size:14px; font-family:'Space Grotesk';}
+
+  footer{
+    padding:30px 6vw 50px 6vw;
+    font-size:12px;
+    color:#7a7161;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  footer a{color:var(--navy-mid);}
+
+  @media (max-width:560px){
+    .hero{padding:32px 5vw 0 5vw;}
+    .live-readout{gap:16px;}
+    .grid-wrap{padding:34px 5vw 10px 5vw;}
+    footer{padding:24px 5vw 40px 5vw;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .dot{animation:none;}
+    .trace path.active{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-top">
+    <div>
+      <div class="brand">Poste d'observation · <strong>Littoral Varois</strong></div>
+      <h1>Sablettes → La Seyne → Marseille</h1>
+      <p class="subtitle">Relevés en direct — température de l'eau, air et vent, mesurés par les modèles Open‑Meteo / Météo‑France les plus proches de chaque point.</p>
+    </div>
+    <div class="coord">
+      SABLETTES <span class="mono">43.093N 5.891E</span><br>
+      LA SEYNE‑S/MER <span class="mono">43.100N 5.883E</span><br>
+      MARSEILLE <span class="mono">43.297N 5.370E</span>
+    </div>
+  </div>
+
+  <div class="live-readout">
+    <div>
+      <div class="live-tag"><span class="dot"></span>Température de l'eau — en direct</div>
+      <div class="big-number" id="water-temp">--<sup>°C</sup></div>
+    </div>
+    <div class="big-label">Plage des Sablettes, La Seyne‑sur‑Mer — mesure de surface</div>
+    <div class="verdict" id="verdict">Chargement des relevés…</div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel">
+      <div class="chart-title">Eau — Sablettes · 30 derniers jours</div>
+      <div class="chart-sub" id="chart-30d-sub">—</div>
+      <div id="chart-30d"><div class="chart-loading">Chargement du graphique…</div></div>
+    </div>
+    <div class="chart-panel">
+      <div class="chart-title">Eau — Sablettes · sur l'année</div>
+      <div class="chart-sub" id="chart-year-sub">—</div>
+      <div id="chart-year"><div class="chart-loading">Chargement du graphique…</div></div>
+    </div>
+  </div>
+
+  <div class="trace-wrap">
+    <svg class="trace" viewBox="0 0 1200 100" preserveAspectRatio="none">
+      <path d="M0,60 C60,20 120,20 180,55 C240,90 300,90 360,55 C420,20 480,20 540,55 C600,90 660,90 720,55 C780,20 840,20 900,55 C960,90 1020,90 1080,55 C1140,20 1180,20 1200,45" />
+      <path class="active" d="M0,60 C60,20 120,20 180,55 C240,90 300,90 360,55 C420,20 480,20 540,55 C600,90 660,90 720,55 C780,20 840,20 900,55 C960,90 1020,90 1080,55 C1140,20 1180,20 1200,45" />
+    </svg>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid-heading">
+    <h2>Instruments</h2>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span id="updated-at" class="mono">—</span>
+      <button class="refresh-btn" id="refresh-btn">Actualiser</button>
+    </div>
+  </div>
+
+  <div class="loc-block">
+    <div class="loc-heading">
+      <h3>La Seyne‑sur‑Mer</h3>
+      <span class="loc-sub">eau &amp; houle mesurées aux Sablettes</span>
+    </div>
+    <div class="cards" id="cards-seyne"></div>
+  </div>
+
+  <div class="loc-block">
+    <div class="loc-heading">
+      <h3>Marseille</h3>
+      <span class="loc-sub">eau &amp; houle mesurées au large du Prado</span>
+    </div>
+    <div class="cards" id="cards-marseille"></div>
+  </div>
+</div>
+
+<footer>
+  <span>Données : <a href="https://open-meteo.com" target="_blank" rel="noopener">Open‑Meteo</a> (modèles Météo‑France / Copernicus Marine). Actualisation auto. toutes les 10 min.</span>
+  <span>Fait pour le plaisir de checker la température de l'eau avant d'y aller.</span>
+</footer>
+
+<script>
+const POINTS = {
+  sablettes:  { name: "Sablettes",       lat: 43.093,  lon: 5.891 },
+  laSeyne:    { name: "La Seyne‑sur‑Mer", lat: 43.1003, lon: 5.8830 },
+  marseille:  { name: "Marseille",       lat: 43.2965, lon: 5.3698 },
+  marseilleSea:{ name: "Marseille (large du Prado)", lat: 43.2495, lon: 5.3730 }
+};
+
+const WEATHER_CODES = {
+  0:["Ciel dégagé","☀️"],1:["Plutôt dégagé","🌤️"],2:["Partiellement nuageux","⛅"],3:["Couvert","☁️"],
+  45:["Brouillard","🌫️"],48:["Brouillard givrant","🌫️"],
+  51:["Bruine légère","🌦️"],53:["Bruine","🌦️"],55:["Bruine forte","🌦️"],
+  61:["Pluie légère","🌧️"],63:["Pluie","🌧️"],65:["Pluie forte","🌧️"],
+  71:["Neige légère","🌨️"],73:["Neige","🌨️"],75:["Neige forte","🌨️"],
+  80:["Averses légères","🌦️"],81:["Averses","🌦️"],82:["Averses violentes","⛈️"],
+  95:["Orage","⛈️"],96:["Orage + grêle","⛈️"],99:["Orage violent","⛈️"]
+};
+
+function weatherText(code){
+  return WEATHER_CODES[code] || ["Conditions inconnues","—"];
+}
+
+function swimVerdict(temp){
+  if (temp === null || isNaN(temp)) return "Relevé de l'eau indisponible pour le moment.";
+  if (temp < 15) return "Fraîche : combinaison recommandée.";
+  if (temp < 19) return "Encore fraîche, mais baignade possible pour les courageux.";
+  if (temp < 23) return "Agréable, bonne température de baignade.";
+  if (temp < 27) return "Idéale, l'eau est chaude.";
+  return "Très chaude, presque une piscine.";
+}
+
+async function fetchJSON(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+function fmtTime(iso){
+  if(!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+}
+
+function fmtDateShort(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+}
+
+function cardHTML(id, label, value, unit, foot, error){
+  if(error){
+    return `<div class="card state-error" id="${id}">
+      <div class="metric-label">${label}</div>
+      <div class="value">Instrument hors service</div>
+      <div class="foot">Nouvel essai au prochain rafraîchissement</div>
+    </div>`;
+  }
+  return `<div class="card" id="${id}">
+    <div class="metric-label">${label}</div>
+    <div class="value">${value}<span class="unit">${unit}</span></div>
+    <div class="foot">${foot}</div>
+  </div>`;
+}
+
+async function loadLocationCards(containerId, weatherPoint, marinePoint, isPrimaryWater){
+  const cardsEl = document.getElementById(containerId);
+  let out = [];
+
+  // Air + vent (Forecast API)
+  try{
+    const w = await fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${weatherPoint.lat}&longitude=${weatherPoint.lon}&current=temperature_2m,wind_speed_10m,relative_humidity_2m,weather_code&timezone=Europe%2FParis`);
+    const [desc, emoji] = weatherText(w.current.weather_code);
+    out.push(cardHTML(containerId+'-air', `Air — ${desc} ${emoji}`, w.current.temperature_2m.toFixed(1), " °C", "Relevé " + fmtTime(w.current.time)));
+    out.push(cardHTML(containerId+'-wind', "Vent / Humidité", w.current.wind_speed_10m.toFixed(0), " km/h", `Humidité ${w.current.relative_humidity_2m}%`));
+  }catch(e){
+    out.push(cardHTML(containerId+'-air', "Température de l'air", null, null, null, true));
+    out.push(cardHTML(containerId+'-wind', "Vent / Humidité", null, null, null, true));
+  }
+
+  // Eau + houle (Marine API)
+  try{
+    const m = await fetchJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${marinePoint.lat}&longitude=${marinePoint.lon}&current=sea_surface_temperature,wave_height&timezone=Europe%2FParis`);
+    out.push(cardHTML(containerId+'-water', "Eau — surface", m.current.sea_surface_temperature.toFixed(1), " °C", "Relevé " + fmtTime(m.current.time)));
+    out.push(cardHTML(containerId+'-waves', "Hauteur de houle", m.current.wave_height.toFixed(2), " m", "Relevé " + fmtTime(m.current.time)));
+
+    if(isPrimaryWater){
+      document.getElementById('water-temp').innerHTML = `${m.current.sea_surface_temperature.toFixed(1)}<sup>°C</sup>`;
+      document.getElementById('verdict').textContent = swimVerdict(m.current.sea_surface_temperature);
+    }
+  }catch(e){
+    out.push(cardHTML(containerId+'-water', "Eau — surface", null, null, null, true));
+    out.push(cardHTML(containerId+'-waves', "Hauteur de houle", null, null, null, true));
+    if(isPrimaryWater){
+      document.getElementById('water-temp').innerHTML = `--<sup>°C</sup>`;
+      document.getElementById('verdict').textContent = "Impossible de récupérer la température de l'eau pour le moment.";
+    }
+  }
+
+  cardsEl.innerHTML = out.join("");
+}
+
+/* ---------- CHARTS ---------- */
+
+function isoDate(d){ return d.toISOString().slice(0,10); }
+
+function aggregateDaily(times, values){
+  const buckets = {};
+  for(let i=0;i<times.length;i++){
+    if(values[i]===null || values[i]===undefined) continue;
+    const day = times[i].slice(0,10);
+    if(!buckets[day]) buckets[day] = [];
+    buckets[day].push(values[i]);
+  }
+  return Object.keys(buckets).sort().map(day => {
+    const arr = buckets[day];
+    const mean = arr.reduce((a,b)=>a+b,0) / arr.length;
+    return { date: day, value: mean };
+  });
+}
+
+function renderChart(containerId, subId, points, opts){
+  const container = document.getElementById(containerId);
+  const sub = document.getElementById(subId);
+  if(!points.length){
+    container.innerHTML = '<div class="chart-loading">Pas de données disponibles</div>';
+    return;
+  }
+  const values = points.map(p=>p.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const padV = (max - min) * 0.15 || 1;
+  const yMin = min - padV, yMax = max + padV;
+
+  const W = 400, H = 120, padL = 4, padR = 4, padT = 6, padB = 6;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+
+  const xFor = i => padL + (points.length === 1 ? innerW/2 : (i/(points.length-1)) * innerW);
+  const yFor = v => padT + innerH - ((v - yMin) / (yMax - yMin)) * innerH;
+
+  let linePath = "";
+  points.forEach((p,i) => {
+    const x = xFor(i), y = yFor(p.value);
+    linePath += (i===0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : ` L${x.toFixed(1)},${y.toFixed(1)}`);
+  });
+  const areaPath = linePath + ` L${xFor(points.length-1).toFixed(1)},${(padT+innerH).toFixed(1)} L${xFor(0).toFixed(1)},${(padT+innerH).toFixed(1)} Z`;
+
+  const gradId = 'grad-' + containerId;
+  const svg = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${opts.color}" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="${opts.color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#${gradId})" stroke="none"/>
+      <path d="${linePath}" fill="none" stroke="${opts.color}" stroke-width="1.6"/>
+    </svg>
+    <div class="chart-minmax">
+      <span>${min.toFixed(1)}°C</span>
+      <span>${max.toFixed(1)}°C</span>
+    </div>
+  `;
+  container.innerHTML = svg;
+  sub.textContent = `${fmtDateShort(points[0].date)} → ${fmtDateShort(points[points.length-1].date)}`;
+}
+
+async function loadCharts(){
+  const today = new Date();
+  const end = isoDate(today);
+
+  // 30 jours
+  try{
+    const start30 = new Date(today); start30.setDate(start30.getDate() - 29);
+    const url30 = `https://marine-api.open-meteo.com/v1/marine?latitude=${POINTS.sablettes.lat}&longitude=${POINTS.sablettes.lon}&hourly=sea_surface_temperature&start_date=${isoDate(start30)}&end_date=${end}&timezone=Europe%2FParis`;
+    const d30 = await fetchJSON(url30);
+    const pts30 = aggregateDaily(d30.hourly.time, d30.hourly.sea_surface_temperature);
+    renderChart('chart-30d', 'chart-30d-sub', pts30, { color: '#4fb3ac' });
+  }catch(e){
+    document.getElementById('chart-30d').innerHTML = '<div class="chart-loading">Graphique indisponible</div>';
+  }
+
+  // Sur l'année
+  try{
+    const startYear = new Date(today); startYear.setDate(startYear.getDate() - 364);
+    const urlYear = `https://marine-api.open-meteo.com/v1/marine?latitude=${POINTS.sablettes.lat}&longitude=${POINTS.sablettes.lon}&hourly=sea_surface_temperature&start_date=${isoDate(startYear)}&end_date=${end}&timezone=Europe%2FParis`;
+    const dYear = await fetchJSON(urlYear);
+    const ptsYear = aggregateDaily(dYear.hourly.time, dYear.hourly.sea_surface_temperature);
+    renderChart('chart-year', 'chart-year-sub', ptsYear, { color: '#e8703a' });
+  }catch(e){
+    document.getElementById('chart-year').innerHTML = '<div class="chart-loading">Graphique indisponible</div>';
+  }
+}
+
+/* ---------- MAIN ---------- */
+
+async function loadAll(){
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = "Mise à jour…";
+
+  await Promise.all([
+    loadLocationCards('cards-seyne', POINTS.laSeyne, POINTS.sablettes, true),
+    loadLocationCards('cards-marseille', POINTS.marseille, POINTS.marseilleSea, false)
+  ]);
+
+  document.getElementById('updated-at').textContent = "Dernière actualisation " + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+
+  btn.disabled = false;
+  btn.textContent = "Actualiser";
+}
+
+document.getElementById('refresh-btn').addEventListener('click', loadAll);
+loadAll();
+loadCharts();
+setInterval(loadAll, 10 * 60 * 1000); // auto-refresh every 10 min
+</script>
+
+</body>
+</html>
